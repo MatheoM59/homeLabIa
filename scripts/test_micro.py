@@ -1,4 +1,3 @@
-import numpy as np
 import sounddevice as sd
 from faster_whisper import WhisperModel
 
@@ -14,7 +13,7 @@ def record():
 
 def transcribe_audio(audio):
     model = WhisperModel("small", device="cpu", compute_type="int8")
-    segments, info = model.transcribe(audio, language="fr")
+    segments, _ = model.transcribe(audio, language="fr")
     for segment in segments:
         print(segment.text)
 

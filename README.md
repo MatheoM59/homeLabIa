@@ -64,6 +64,14 @@ python scripts/test_micro.py
 
 Au premier lancement, le modèle Whisper `small` (~500 Mo) est téléchargé : ça peut prendre une ou deux minutes sans rien afficher.
 
+Discussion au clavier avec le LLM, avec mémoire de la conversation (`quit` pour sortir) :
+
+```bash
+python scripts/test_llm.py
+```
+
+Le serveur Ollama doit tourner (app Ollama ou `ollama serve`).
+
 ## Pièges connus
 
 - **`python3 --version` affiche 3.9 sur Mac** : c'est le Python d'Apple (`/usr/bin/python3`). Homebrew installe la 3.11 sous le nom `python3.11` → toujours créer le venv avec `python3.11 -m venv .venv`. Une fois le venv activé, `python` pointe bien sur la 3.11.
@@ -77,7 +85,9 @@ Au premier lancement, le modèle Whisper `small` (~500 Mo) est téléchargé : �
 - [x] Environnement Python 3.11 (venv)
 - [x] Installer faster-whisper + sounddevice
 - [x] Script micro → transcription (`scripts/test_micro.py`)
-- [ ] Brancher Ollama sur la transcription
+- [x] Appel à Ollama avec consigne système + mémoire de conversation (`scripts/test_llm.py`)
+- [ ] Assembler le pipeline dans le package `assistant/` (micro → Whisper → Ollama)
+- [ ] Détection de fin de parole (VAD) au lieu d'un enregistrement de durée fixe
 - [ ] Réponse vocale avec Piper
 - [ ] Wake word avec openWakeWord
 - [ ] Migration sur le serveur homelab (Linux + Docker)
