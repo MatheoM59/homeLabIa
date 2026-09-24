@@ -1,0 +1,27 @@
+# Environnement Python
+.venv/
+__pycache__/
+*.py[cod]
+
+# Modèles téléchargés (Whisper, Piper, wake word) — trop lourds pour git
+models/
+*.onnx
+*.tflite
+
+# Enregistrements audio de test
+*.wav
+*.mp3
+
+# Secrets / config locale
+.env
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# MEMORY
+
+memory.md
