@@ -56,7 +56,13 @@ pip freeze > requirements.txt
 
 ## Lancement
 
-_À venir — premier script : micro → faster-whisper → texte affiché._
+Test de la capture micro + transcription (enregistre 5 s puis affiche le texte) :
+
+```bash
+python scripts/test_micro.py
+```
+
+Au premier lancement, le modèle Whisper `small` (~500 Mo) est téléchargé : ça peut prendre une ou deux minutes sans rien afficher.
 
 ## Pièges connus
 
@@ -69,8 +75,8 @@ _À venir — premier script : micro → faster-whisper → texte affiché._
 
 - [x] Ollama + `mistral-small3.2` fonctionnels en local
 - [x] Environnement Python 3.11 (venv)
-- [ ] Installer faster-whisper + sounddevice
-- [ ] Script micro → transcription
+- [x] Installer faster-whisper + sounddevice
+- [x] Script micro → transcription (`scripts/test_micro.py`)
 - [ ] Brancher Ollama sur la transcription
 - [ ] Réponse vocale avec Piper
 - [ ] Wake word avec openWakeWord
