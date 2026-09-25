@@ -66,7 +66,9 @@ Depuis la racine du projet :
 python -m assistant
 ```
 
-Boucle : écoute 5 s → transcription → réponse de l'IA (avec mémoire de la conversation). Un silence arrête l'assistant.
+Boucle : écoute jusqu'à la fin de la phrase (1,5 s de silence) → transcription → réponse de l'IA (avec mémoire de la conversation). Si personne ne parle pendant 5 s, l'assistant s'arrête.
+
+Réglages dans `assistant/audio.py` : `SEUIL_VOLUME` (volume RMS au-dessus duquel un bloc de 30 ms compte comme de la voix), `SILENCE_FIN`, `ATTENTE_MAX`, `DUREE_MAX`.
 
 ### Scripts de test (une brique à la fois)
 
@@ -102,7 +104,7 @@ python scripts/test_llm.py
 - [x] Appel à Ollama avec consigne système + mémoire de conversation (`scripts/test_llm.py`)
 - [x] Assembler le pipeline dans le package `assistant/` (micro → Whisper → Ollama)
 - [x] Filtre VAD contre les hallucinations de Whisper sur le silence
-- [ ] Détection de fin de parole (VAD) au lieu d'un enregistrement de durée fixe
+- [x] Détection de fin de parole (seuil de volume RMS par blocs de 30 ms) au lieu d'un enregistrement de durée fixe
 - [ ] Réponse vocale avec Piper
 - [ ] Wake word avec openWakeWord
 - [ ] Migration sur le serveur homelab (Linux + Docker)

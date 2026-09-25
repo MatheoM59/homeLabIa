@@ -1,4 +1,4 @@
-from assistant.audio import record
+from assistant.audio import record_until_silence
 from assistant.llm import SYSTEM_PROMPT, ask_llm
 from assistant.stt import transcribe_audio
 
@@ -7,7 +7,7 @@ messages = [
 ]
 while True:
     print("🎙️Je t'écoute...")
-    question = transcribe_audio(record())
+    question = transcribe_audio(record_until_silence())
     if not question:
         break
     messages.append({"role": "user", "content": question})
