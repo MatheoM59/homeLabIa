@@ -56,6 +56,20 @@ pip freeze > requirements.txt
 
 ## Lancement
 
+Le serveur Ollama doit tourner (app Ollama, ou `ollama serve` dans un terminal séparé).
+
+### Assistant
+
+Depuis la racine du projet :
+
+```bash
+python -m assistant
+```
+
+Boucle : écoute 5 s → transcription → réponse de l'IA (avec mémoire de la conversation). Un silence arrête l'assistant.
+
+### Scripts de test (une brique à la fois)
+
 Test de la capture micro + transcription (enregistre 5 s puis affiche le texte) :
 
 ```bash
@@ -70,13 +84,13 @@ Discussion au clavier avec le LLM, avec mémoire de la conversation (`quit` pour
 python scripts/test_llm.py
 ```
 
-Le serveur Ollama doit tourner (app Ollama ou `ollama serve`).
-
 ## Pièges connus
 
 - **`python3 --version` affiche 3.9 sur Mac** : c'est le Python d'Apple (`/usr/bin/python3`). Homebrew installe la 3.11 sous le nom `python3.11` → toujours créer le venv avec `python3.11 -m venv .venv`. Une fois le venv activé, `python` pointe bien sur la 3.11.
 - **Autorisation micro sur macOS** : au premier enregistrement, macOS demande l'accès au micro pour le Terminal / VS Code. Si c'est refusé, l'enregistrement est silencieux et Whisper ne renvoie rien (à réactiver dans *Réglages Système → Confidentialité et sécurité → Micro*).
 - **Format audio attendu par Whisper** : 16 000 Hz, mono, `float32`, tableau 1D (`sounddevice.rec()` renvoie un tableau `(N, 1)` → `.flatten()`).
+- **Whisper invente du texte sur le silence** (« ... », « Merci d'avoir regardé »…) : il a appris sur des vidéos sous-titrées. `vad_filter=True` dans `transcribe()` coupe les passages sans voix → un silence renvoie une chaîne vide.
+- **`python -m assistant`, pas `python assistant/__main__.py`** : le `-m` est nécessaire pour que les imports `from assistant.xxx import ...` fonctionnent.
 - **Portabilité** : pas de chemins en dur ni de libs spécifiques à macOS, le code doit tourner tel quel sur Linux.
 
 ## Roadmap
@@ -86,7 +100,8 @@ Le serveur Ollama doit tourner (app Ollama ou `ollama serve`).
 - [x] Installer faster-whisper + sounddevice
 - [x] Script micro → transcription (`scripts/test_micro.py`)
 - [x] Appel à Ollama avec consigne système + mémoire de conversation (`scripts/test_llm.py`)
-- [ ] Assembler le pipeline dans le package `assistant/` (micro → Whisper → Ollama)
+- [x] Assembler le pipeline dans le package `assistant/` (micro → Whisper → Ollama)
+- [x] Filtre VAD contre les hallucinations de Whisper sur le silence
 - [ ] Détection de fin de parole (VAD) au lieu d'un enregistrement de durée fixe
 - [ ] Réponse vocale avec Piper
 - [ ] Wake word avec openWakeWord

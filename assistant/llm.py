@@ -17,17 +17,3 @@ def ask_llm(messages):
         messages=messages,
     )
     return response["message"]["content"]
-
-
-if __name__ == "__main__":
-    messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-    ]
-    while True:
-        question = input("Toi : ")
-        if question == "quit":
-            break
-        messages.append({"role": "user", "content": question.strip()})
-        answer = ask_llm(messages)
-        print("IA : ", answer)
-        messages.append({"role": "assistant", "content": answer})
