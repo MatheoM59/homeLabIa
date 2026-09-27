@@ -15,7 +15,7 @@ Micro USB → Wake word → Speech-to-Text → LLM → Text-to-Speech → Encein
 |---|---|---|
 | Wake word | [openWakeWord](https://github.com/dscripka/openWakeWord) | Détecte le mot d'activation et déclenche l'écoute |
 | Speech-to-Text | [faster-whisper](https://github.com/SYSTRAN/faster-whisper) | Transcrit la voix en texte (optimisé CPU) |
-| LLM | [Ollama](https://ollama.com) + `mistral-small3.2` | Génère la réponse, en local via `localhost:11434` |
+| LLM | [Ollama](https://ollama.com) + `qwen3:8b` | Génère la réponse, en local via `localhost:11434` |
 | Text-to-Speech | [Piper](https://github.com/OHF-Voice/piper1-gpl) | Transforme la réponse en voix |
 | Orchestration | Python 3.11 | Relie toutes les étapes |
 
@@ -24,7 +24,7 @@ Micro USB → Wake word → Speech-to-Text → LLM → Text-to-Speech → Encein
 - **Python 3.11**
 - **Ollama** installé, avec le modèle téléchargé :
   ```bash
-  ollama pull mistral-small3.2
+  ollama pull qwen3:8b
   ```
 - Un micro et une sortie audio
 
@@ -111,6 +111,9 @@ python scripts/test_llm.py
 - **openWakeWord sur Mac** : `inference_framework="onnx"` obligatoire (le moteur par défaut, tflite, n'existe que sous Linux). L'audio doit être en `int16`, par blocs de 1280 échantillons (80 ms), et il faut appeler `reset()` après une détection, sinon le modèle se re-déclenche sur l'ancien audio gardé en mémoire.
 - **Pylance souligne `predictions["hey_jarvis"]`** : `predict()` peut renvoyer un tuple si `timing=True`, Pylance ne peut pas savoir que ce n'est pas le cas → `# type: ignore` sur la ligne. Ce n'est pas une erreur d'exécution.
 - **Voix Piper ralentie / trop grave** : les voix `medium` sont en 22 050 Hz, pas 16 000 → toujours jouer avec `chunk.sample_rate`.
+- **Demander au LLM d'écrire les nombres en lettres le fait halluciner** (« soixante-cinq mille degrés » au lieu de 5 500 pour le Soleil). Il écrit en chiffres, et c'est `clean_for_speech()` qui convertit : ce qui peut être garanti par le code ne doit pas dépendre du modèle.
+- **Les exemples du prompt sont imités à la lettre** : un exemple « Je ne connais pas la météo en temps réel » faisait refuser toute recherche (« Je ne connais pas le prix du Bitcoin »). Après l'ajout d'un outil, relire le prompt pour retirer les règles et exemples qui le contredisent. Qwen demandait aussi la permission avant de chercher → consigne « utilise-le directement ».
+- **Fuseau horaire** : la date vient de l'horloge de la machine ; dans Docker, penser à `TZ=Europe/Paris`, sinon le conteneur est en UTC.
 - **Portabilité** : pas de chemins en dur ni de libs spécifiques à macOS, le code doit tourner tel quel sur Linux.
 
 ## Roadmap
@@ -126,7 +129,13 @@ python scripts/test_llm.py
 - [x] Filtre anti-bruit (`PAROLE_MIN`) contre les bruits brefs qui déclenchaient l'enregistrement
 - [x] Réponse vocale avec Piper (`fr_FR-siwis-medium`)
 - [x] Wake word « Hey Jarvis » avec openWakeWord : veille → conversation → retour en veille après un silence
-- [ ] Gestion d'erreur (`try` / `except`) : prévenir à voix haute si Ollama est injoignable
-- [ ] Tester un modèle Ollama plus léger (`mistral-small3.2` pèse 15 Go, trop pour la VM de test et un mini PC modeste)
-- [ ] Tool calling : d'abord une calculatrice (le LLM se trompe en calcul mental), puis météo (Open-Meteo) et trafic (TomTom ou HERE)
+- [x] Gestion d'erreur (`try` / `except ConnectionError`) : prévient à voix haute si Ollama est injoignable, retire la question restée sans réponse et retourne en veille
+- [x] Modèle plus léger : `qwen3:8b` (5,6 Go en mémoire, contre 15 Go pour `mistral-small3.2`), qualité équivalente à l'oral. Vitesse à mesurer sur CPU, dans la VM
+- [ ] Limiter l'historique de conversation : le contexte de `qwen3:8b` est de 4096 tokens (~3 000 mots) ; au-delà, le début (dont la consigne système) est coupé
+- [x] `SYSTEM_PROMPT` réécrit : persona Jarvis, règles précises (longueur, relances, actions impossibles, informations inconnues, erreurs de transcription) + exemples de bonnes réponses (few-shot)
+- [x] Nettoyage des réponses par le code (`assistant/text.py`) : emojis et markdown retirés, unités sans abréviation, nombres en toutes lettres (`num2words`), accords (« une heure », « un litre »)
+- [ ] Relances encore trop fréquentes (« Je peux t'en dire plus si tu veux. ») : limite d'un modèle 8b
+- [x] Tool calling : recherche web (`assistant/tools.py`, bibliothèque `ddgs`, 3 résultats titre + extrait), boucle d'outils dans `ask_llm()` avec liste blanche `OUTILS`
+- [x] Date et heure actuelles injectées dans le message système à chaque question (le modèle ne les connaît pas)
+- [ ] Outils suivants : météo (Visual Crossing, clé dans `.env`), calculatrice, trafic (TomTom ou HERE) ; plus tard SearXNG auto-hébergé à la place de `ddgs`
 - [ ] Migration sur Linux + Docker (d'abord dans une VM de test, puis sur le mini PC du homelab)
