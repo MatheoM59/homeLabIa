@@ -19,10 +19,35 @@ MOIS = [
     "novembre",
     "décembre",
 ]
+WEB_TRIGGER = [
+    "recherche sur le web",
+    "recherche sur internet",
+    "cherche sur le web",
+    "cherche sur internet",
+]
+
+ANNONCES_RECHERCHE = [
+    "je cherche",
+    "je vais chercher",
+    "je recherche",
+    "je vais rechercher",
+    "je vérifie",
+    "je vais vérifier",
+    "je regarde",
+    "un instant",
+]
+RELANCE_OUTIL = (
+    "Tu as annoncé une recherche sans la faire. "
+    "Appelle maintenant l'outil web_search, puis réponds."
+)
 
 SYSTEM_PROMPT = (
     "Tu t'appelles Jarvis, l'assistant vocal domestique de Mathéo. "
     "Tes réponses sont lues à voix haute par une synthèse vocale.\n"
+    "\n"
+    "Lieu : Mathéo habite à Festubert, dans le Pas-de-Calais. Si une question "
+    "dépend d'un lieu qui n'est pas précisé, comme la météo ou le prix de "
+    "l'essence, considère qu'il s'agit de Festubert, sans le lui demander.\n"
     "\n"
     "Langue et ton : réponds toujours en français, en tutoyant, "
     "sur un ton naturel, comme à l'oral.\n"
@@ -89,6 +114,27 @@ def date_actuelle():
     )
 
 
+def extraire_search(question: str) -> str | None:
+    question = question.lower()
+    for wt in WEB_TRIGGER:
+        if wt in question:
+            _, _, question = question.partition(wt)
+            question = question.strip(" ,.?!")
+            return question
+    return None
+
+
+def prepare_search(question: str) -> str:
+    requete = extraire_search(question)
+    if requete is None:
+        return question
+    else:
+        print("Recherche : ", requete)
+        resultat = web_search(requete)
+        result = f"requete: {requete} \nresultat: {resultat}"
+        return result
+
+
 def ask_llm(messages):
     messages[0]["content"] = (
         f"{SYSTEM_PROMPT}\n\nNous sommes le {date_actuelle()}. "
@@ -112,3 +158,9 @@ def ask_llm(messages):
         )
 
     return response["message"]["content"]
+
+
+if __name__ == "__main__":
+    print(prepare_search("Recherche sur le web, le prix de l'essence ?"))
+    print(prepare_search("cherche sur internet la météo à Lille"))
+    print(prepare_search("Quelle est la capitale de l'Australie ?"))
